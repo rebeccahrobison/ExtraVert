@@ -54,6 +54,16 @@ List<Plant> plants = new List<Plant>()
     ZIP = 90001,
     Sold = true,
     AvailableUntil = new DateTime(2024, 1, 3)
+  },
+  new Plant()
+  {
+    Species = "Snake Plant",
+    LightNeeds = 2,
+    AskingPrice = 19.50M,
+    City = "Las Vegas",
+    ZIP = 12345,
+    Sold = false,
+    AvailableUntil = new DateTime(2024, 2, 3)
   }
 };
 
@@ -85,7 +95,8 @@ while (userChoice != "0")
                     4. Delist a plant
                     5. Display a random plant
                     6. Search for a plant by light needs
-                    7. View app statistics");
+                    7. View app statistics
+                    8. Inventory by Species");
   userChoice = Console.ReadLine();
   Console.Clear();
   switch (userChoice)
@@ -114,6 +125,9 @@ while (userChoice != "0")
       break;
     case "7":
       ViewStatistics();
+      break;
+    case "8":
+      InventoryBySpecies();
       break;
     default:
       Console.WriteLine(greeting);
@@ -316,4 +330,29 @@ string PlantDetails(Plant plant)
 {
   string plantString = $"{plant.Species} in {plant.City} {(plant.Sold ? "was sold." : $"is available until {(plant.AvailableUntil).ToString("d")} for {plant.AskingPrice} dollars.")}";
   return plantString;
+}
+
+void InventoryBySpecies()
+{
+  Dictionary<string, int> plantInventory = new Dictionary<string, int>();
+  foreach (Plant plant in plants)
+  {
+    //check dictionary to see if plant.species is there
+    int plantNumber;
+    bool isPlantFound = plantInventory.TryGetValue(plant.Species, out plantNumber);
+    //if so, increment value by one
+    if (isPlantFound)
+    {
+      // plantNumber++;
+      plantInventory[plant.Species]++;
+    }
+    else
+    {
+      plantInventory.Add(plant.Species, 1);
+    }
+  }
+  foreach (KeyValuePair<string, int> kv in plantInventory)
+  {
+    Console.WriteLine($"Species: {kv.Key}, Amount: {kv.Value}");
+  }
 }
