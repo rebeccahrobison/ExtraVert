@@ -177,15 +177,17 @@ void PostPlant()
     }
   }
 
-  Plant plantToPost = new Plant();
-  plantToPost.Species = plantToPostSpecies;
-  plantToPost.LightNeeds = plantToPostLightNeeds;
-  plantToPost.AskingPrice = plantToPostAskingPrice;
-  plantToPost.City = plantToPostCity;
-  plantToPost.ZIP = plantToPostZIP;
-  plantToPost.Sold = false;
-  plantToPost.AvailableUntil = plantToPostAvailableUntil;
-  plants.Add(plantToPost);
+    Plant plantToPost = new Plant
+    {
+        Species = plantToPostSpecies,
+        LightNeeds = plantToPostLightNeeds,
+        AskingPrice = plantToPostAskingPrice,
+        City = plantToPostCity,
+        ZIP = plantToPostZIP,
+        Sold = false,
+        AvailableUntil = plantToPostAvailableUntil
+    };
+    plants.Add(plantToPost);
   Console.WriteLine($"Your {plantToPostSpecies} has been posted for sale.");
 }
 
@@ -255,14 +257,15 @@ void SearchForPlant()
 {
   Console.WriteLine("Enter the max light needs number between 1 and 5:");
   int userInput = int.Parse(Console.ReadLine());
-  List<Plant> lightPlants = new List<Plant>();
-  for (int i = 0; i < plants.Count; i++)
-  {
-    if (plants[i].LightNeeds <= userInput)
-    {
-      lightPlants.Add(plants[i]);
-    }
-  }
+  List<Plant> lightPlants = plants.Where(p => p.LightNeeds <= userInput).ToList();
+  // List<Plant> lightPlants = new List<Plant>();
+  // for (int i = 0; i < plants.Count; i++)
+  // {
+  //   if (plants[i].LightNeeds <= userInput)
+  //   {
+  //     lightPlants.Add(plants[i]);
+  //   }
+  // }
   Console.WriteLine("Plants within your light needs parameter:");
   foreach (Plant plant in lightPlants)
   {
