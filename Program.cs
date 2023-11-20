@@ -13,7 +13,8 @@ List<Plant> plants = new List<Plant>()
     City = "Nashville",
     ZIP = 37205,
     Sold = false,
-    AvailableUntil = new DateTime(2023, 11, 17)
+    AvailableUntil = new DateTime(2023, 11, 17),
+    PlantType = "flower"
   },
   new Plant()
   {
@@ -23,7 +24,8 @@ List<Plant> plants = new List<Plant>()
     City = "New York",
     ZIP = 10001,
     Sold = true,
-    AvailableUntil = new DateTime(2023, 11, 10)
+    AvailableUntil = new DateTime(2023, 11, 10),
+    PlantType = "bush"
   },
   new Plant()
   {
@@ -33,7 +35,8 @@ List<Plant> plants = new List<Plant>()
     City = "Chicago",
     ZIP = 60601,
     Sold = false,
-    AvailableUntil = new DateTime(2023, 12, 17)
+    AvailableUntil = new DateTime(2023, 12, 17),
+    PlantType = "flower"
   },
   new Plant()
   {
@@ -43,7 +46,8 @@ List<Plant> plants = new List<Plant>()
     City = "Miami",
     ZIP = 33101,
     Sold = false,
-    AvailableUntil = new DateTime(2023, 12, 17)
+    AvailableUntil = new DateTime(2023, 12, 17),
+    PlantType = "bush"
   },
   new Plant()
   {
@@ -53,7 +57,8 @@ List<Plant> plants = new List<Plant>()
     City = "Los Angeles",
     ZIP = 90001,
     Sold = true,
-    AvailableUntil = new DateTime(2024, 1, 3)
+    AvailableUntil = new DateTime(2024, 1, 3),
+    PlantType = "bush"
   },
   new Plant()
   {
@@ -63,7 +68,8 @@ List<Plant> plants = new List<Plant>()
     City = "Las Vegas",
     ZIP = 12345,
     Sold = false,
-    AvailableUntil = new DateTime(2024, 2, 3)
+    AvailableUntil = new DateTime(2024, 2, 3),
+    PlantType = "bush"
   }
 };
 
@@ -191,7 +197,41 @@ void PostPlant()
     }
   }
 
-    Plant plantToPost = new Plant
+  string[] plantTypes =
+  {
+      "tree",
+      "bush",
+      "flower",
+      "herb"
+  };
+  Console.WriteLine("What type of plant is it? Enter a number:");
+  for (int i = 0; i < plantTypes.Length; i++)
+  {
+    Console.WriteLine($"{i + 1}. {plantTypes[i]}");
+  }
+  int plantToPostTypeUserInput = int.Parse(Console.ReadLine());
+  string plantToPostType = "";
+  switch (plantToPostTypeUserInput)
+  {
+    case 1:
+      plantToPostType = plantTypes[0];
+      break;
+    case 2:
+      plantToPostType = plantTypes[1];
+      break;
+    case 3:
+      plantToPostType = plantTypes[2];
+      break;
+    case 4:
+      plantToPostType = plantTypes[3];
+      break;
+    default:
+      Console.WriteLine("Invalid input. Navigating back to main menu");
+      break;
+  }
+
+
+  Plant plantToPost = new Plant
     {
         Species = plantToPostSpecies,
         LightNeeds = plantToPostLightNeeds,
@@ -199,7 +239,8 @@ void PostPlant()
         City = plantToPostCity,
         ZIP = plantToPostZIP,
         Sold = false,
-        AvailableUntil = plantToPostAvailableUntil
+        AvailableUntil = plantToPostAvailableUntil,
+        PlantType = plantToPostType
     };
     plants.Add(plantToPost);
   Console.WriteLine($"Your {plantToPostSpecies} has been posted for sale.");
@@ -328,31 +369,39 @@ void ViewStatistics()
 
 string PlantDetails(Plant plant)
 {
-  string plantString = $"{plant.Species} in {plant.City} {(plant.Sold ? "was sold." : $"is available until {(plant.AvailableUntil).ToString("d")} for {plant.AskingPrice} dollars.")}";
+  string plantString = $"{plant.Species} {plant.PlantType} in {plant.City} {(plant.Sold ? "was sold." : $"is available until {(plant.AvailableUntil).ToString("d")} for {plant.AskingPrice} dollars.")}";
   return plantString;
 }
 
 void InventoryBySpecies()
 {
-  Dictionary<string, int> plantInventory = new Dictionary<string, int>();
-  foreach (Plant plant in plants)
+  var plantInventory = plants
+    .GroupBy(plant => plant.Species)
+    .ToDictionary(group => group.Key, group => group.Count());
+
+  foreach (var kvp in plantInventory)
   {
-    //check dictionary to see if plant.species is there
-    int plantNumber;
-    bool isPlantFound = plantInventory.TryGetValue(plant.Species, out plantNumber);
-    //if so, increment value by one
-    if (isPlantFound)
-    {
-      // plantNumber++;
-      plantInventory[plant.Species]++;
-    }
-    else
-    {
-      plantInventory.Add(plant.Species, 1);
-    }
+    Console.WriteLine($"Species: {kvp.Key}, Amount: {kvp.Value}");
   }
-  foreach (KeyValuePair<string, int> kv in plantInventory)
-  {
-    Console.WriteLine($"Species: {kv.Key}, Amount: {kv.Value}");
-  }
+  // Dictionary<string, int> plantInventory = new Dictionary<string, int>();
+  // foreach (Plant plant in plants)
+  // {
+  //   //check dictionary to see if plant.species is there
+  //   int plantNumber;
+  //   bool isPlantFound = plantInventory.TryGetValue(plant.Species, out plantNumber);
+  //   //if so, increment value by one
+  //   if (isPlantFound)
+  //   {
+  //     // plantNumber++;
+  //     plantInventory[plant.Species]++;
+  //   }
+  //   else
+  //   {
+  //     plantInventory.Add(plant.Species, 1);
+  //   }
+  // }
+  // foreach (KeyValuePair<string, int> kv in plantInventory)
+  // {
+  //   Console.WriteLine($"Species: {kv.Key}, Amount: {kv.Value}");
+  // }
 }
