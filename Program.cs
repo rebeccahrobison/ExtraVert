@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.Design;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.Design;
 using System.IO.Compression;
 using System.Security.Authentication;
 using System.Xml.Serialization;
@@ -83,7 +85,7 @@ while (randomPlant == null)
   {
     randomPlant = possibleRandomPlant;
   }
-  
+
 }
 
 
@@ -140,7 +142,7 @@ while (userChoice != "0")
       break;
   }
 }
-  
+
 
 void ListAllPlants()
 {
@@ -148,7 +150,7 @@ void ListAllPlants()
   for (int i = 0; i < plants.Count; i++)
   {
     Console.WriteLine($"{i + 1}. {PlantDetails(plants[i])}");
-      // Console.WriteLine($"{i + 1}. {plants[i].Species} in {plants[i].City} {(plants[i].Sold ? "was sold." : $"is available until {(plants[i].AvailableUntil).ToString("d")} for {plants[i].AskingPrice} dollars.")}");
+    // Console.WriteLine($"{i + 1}. {plants[i].Species} in {plants[i].City} {(plants[i].Sold ? "was sold." : $"is available until {(plants[i].AvailableUntil).ToString("d")} for {plants[i].AskingPrice} dollars.")}");
   }
 }
 
@@ -167,34 +169,91 @@ void ListUnsoldPlants()
 void PostPlant()
 {
   Console.WriteLine("Please enter the details of the plant to be posted:");
+  // Get plant species
   Console.WriteLine("What species is the plant?");
-  string plantToPostSpecies = Console.ReadLine();
-  Console.WriteLine("On a scale of 1-5, how much light does the plant need?");
-  int plantToPostLightNeeds = int.Parse(Console.ReadLine());
-  Console.WriteLine("What is the asking price for the plants?");
-  decimal plantToPostAskingPrice = decimal.Parse(Console.ReadLine());
-  Console.WriteLine("What city is the plant located in?");
-  string plantToPostCity = Console.ReadLine();
-  Console.WriteLine("What zip code is the plant located in?");
-  int plantToPostZIP = int.Parse(Console.ReadLine());
-  Console.WriteLine("What date should the post expire? Enter MM/DD/YYYY");
-  DateTime plantToPostAvailableUntil = DateTime.Now;
-  while (plantToPostAvailableUntil < DateTime.Now)
+  string plantToPostSpecies = "";
+  while (string.IsNullOrEmpty(plantToPostSpecies) || plantToPostSpecies.Length > 25)
   {
-    try 
+    try
     {
-      plantToPostAvailableUntil = DateTime.Parse(Console.ReadLine());
+      plantToPostSpecies = Console.ReadLine();
+      if (plantToPostSpecies.Length > 25)
+      {
+        throw new TooLongException("Species name is too long. What is the species of the plant?");
+      }
+    }
+    catch (TooLongException ex)
+    {
+      Console.WriteLine(ex.Message);
+    }
+  }
+
+  // Get plant light need
+  Console.WriteLine("On a scale of 1-5, how much light does the plant need?");
+  int plantToPostLightNeeds = 0;
+  while (plantToPostLightNeeds < 1 || plantToPostLightNeeds > 5)
+  {
+    try
+    {
+      plantToPostLightNeeds = int.Parse(Console.ReadLine());
+      if (plantToPostLightNeeds < 1 || plantToPostLightNeeds > 5)
+      {
+        throw new ValidationException("Please enter a number between 1-5.");
+      }
+    }
+    catch (ValidationException ex)
+    {
+      Console.WriteLine(ex.Message);
     }
     catch (FormatException)
     {
-      Console.WriteLine("Date format was invalid. Returning to main menu.");
-      return;
+      Console.WriteLine("Invalid input. Please enter a valid number.");
     }
-    catch (Exception ex)
+  }
+
+  // Get plant price
+  Console.WriteLine("What is the asking price for the plants?");
+  decimal plantToPostAskingPrice = 0;
+  while (!decimal.TryParse(Console.ReadLine(), out plantToPostAskingPrice) || !IsTwoDecimalPlaces(plantToPostAskingPrice))
+  {
+    Console.WriteLine("Invalid input. Please enter a valid decimal value.");
+  }
+
+  // Get plant city location
+  Console.WriteLine("What city is the plant located in?");
+  string plantToPostCity = "";
+  while (string.IsNullOrEmpty(plantToPostCity) || plantToPostCity.Length > 25)
+  {
+    try
     {
-      Console.WriteLine(ex);
-      Console.WriteLine("Date Entry Error");
+      plantToPostCity = Console.ReadLine();
+      if (plantToPostCity.Length > 25)
+      {
+        throw new TooLongException("City name is too long. What city is the planted located in?");
+      }
     }
+    catch (TooLongException ex)
+    {
+      Console.WriteLine(ex.Message);
+    }
+  }
+
+  //Get plant ZIP code
+  Console.WriteLine("What zip code is the plant located in?");
+  string zipCodeInput = Console.ReadLine();
+  int plantToPostZIP = -1;
+  while (!int.TryParse(zipCodeInput, out plantToPostZIP) || zipCodeInput.Length != 5)
+  {
+    Console.WriteLine("Invalid input. Please enter a valid five-digit ZIP code:");
+    zipCodeInput = Console.ReadLine();
+  }
+
+  // Get plant post expiration date
+  Console.WriteLine("What date should the post expire? Enter MM/DD/YYYY");
+  DateTime plantToPostAvailableUntil = DateTime.Now;
+  while (!DateTime.TryParse(Console.ReadLine(), out plantToPostAvailableUntil))
+  {
+    Console.WriteLine("Invalid date format. Please enter a valid date. MM/DD/YYYY");
   }
 
   string[] plantTypes =
@@ -209,40 +268,58 @@ void PostPlant()
   {
     Console.WriteLine($"{i + 1}. {plantTypes[i]}");
   }
-  int plantToPostTypeUserInput = int.Parse(Console.ReadLine());
+  int plantToPostTypeUserInput = -1;
   string plantToPostType = "";
-  switch (plantToPostTypeUserInput)
+  while (plantToPostTypeUserInput < 1 || plantToPostTypeUserInput > plantTypes.Length)
   {
-    case 1:
-      plantToPostType = plantTypes[0];
-      break;
-    case 2:
-      plantToPostType = plantTypes[1];
-      break;
-    case 3:
-      plantToPostType = plantTypes[2];
-      break;
-    case 4:
-      plantToPostType = plantTypes[3];
-      break;
-    default:
-      Console.WriteLine("Invalid input. Navigating back to main menu");
-      break;
+    try
+    {
+      plantToPostTypeUserInput = int.Parse(Console.ReadLine());
+      switch (plantToPostTypeUserInput)
+      {
+        case 1:
+          plantToPostType = plantTypes[0];
+          break;
+        case 2:
+          plantToPostType = plantTypes[1];
+          break;
+        case 3:
+          plantToPostType = plantTypes[2];
+          break;
+        case 4:
+          plantToPostType = plantTypes[3];
+          break;
+        default:
+          Console.WriteLine("Invalid input.");
+          break;
+      }
+      if (plantToPostTypeUserInput < 1 || plantToPostTypeUserInput > plantTypes.Length)
+      {
+        throw new ValidationException($"Please enter a number between 1-{plantTypes.Length}.");
+      }
+    }
+    catch (ValidationException ex)
+    {
+      Console.WriteLine(ex.Message);
+    }
+    catch (FormatException)
+    {
+      Console.WriteLine("Invalid input. Please enter a valid number.");
+    }
   }
 
-
   Plant plantToPost = new Plant
-    {
-        Species = plantToPostSpecies,
-        LightNeeds = plantToPostLightNeeds,
-        AskingPrice = plantToPostAskingPrice,
-        City = plantToPostCity,
-        ZIP = plantToPostZIP,
-        Sold = false,
-        AvailableUntil = plantToPostAvailableUntil,
-        PlantType = plantToPostType
-    };
-    plants.Add(plantToPost);
+  {
+    Species = plantToPostSpecies,
+    LightNeeds = plantToPostLightNeeds,
+    AskingPrice = plantToPostAskingPrice,
+    City = plantToPostCity,
+    ZIP = plantToPostZIP,
+    Sold = false,
+    AvailableUntil = plantToPostAvailableUntil,
+    PlantType = plantToPostType
+  };
+  plants.Add(plantToPost);
   Console.WriteLine($"Your {plantToPostSpecies} has been posted for sale.");
 }
 
@@ -254,7 +331,8 @@ void AdoptPlant()
 
   while (chosenPlant == null)
   {
-    try{
+    try
+    {
       int response = int.Parse(Console.ReadLine());
       chosenPlant = plants[response - 1];
       plants[response - 1].Sold = true;
@@ -285,7 +363,8 @@ void DelistPlant()
 
   while (chosenPlant == null)
   {
-    try{
+    try
+    {
       int response = int.Parse(Console.ReadLine());
       chosenPlant = plants[response - 1];
       plants.RemoveAt(response - 1);
@@ -363,8 +442,8 @@ void ViewStatistics()
                     1. Lowest price plant: {lowestPricePlantName} (${lowestPrice})
                     2. Number of plants available: {plantsAvailable}
                     3. Plant with highest light needs: {highestLightNeedsPlant}
-                    4. Average light needs: {(double)totalLightNeeds/plants.Count}
-                    5. Percentage of plants adopted: {(double)plantsAdopted/plants.Count * 100}%");
+                    4. Average light needs: {(double)totalLightNeeds / plants.Count}
+                    5. Percentage of plants adopted: {(double)plantsAdopted / plants.Count * 100}%");
 }
 
 string PlantDetails(Plant plant)
@@ -383,6 +462,7 @@ void InventoryBySpecies()
   {
     Console.WriteLine($"Species: {kvp.Key}, Amount: {kvp.Value}");
   }
+
   // Dictionary<string, int> plantInventory = new Dictionary<string, int>();
   // foreach (Plant plant in plants)
   // {
@@ -405,3 +485,21 @@ void InventoryBySpecies()
   //   Console.WriteLine($"Species: {kv.Key}, Amount: {kv.Value}");
   // }
 }
+
+
+// Helper method to check if a decimal has two decimal places
+bool IsTwoDecimalPlaces(decimal value)
+{
+  int decimalPlaces = BitConverter.GetBytes(decimal.GetBits(value)[3])[2];
+  return decimalPlaces == 2;
+}
+
+
+public class TooLongException : Exception
+{
+  public TooLongException(string message) : base(message)
+  {
+
+  }
+}
+
